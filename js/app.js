@@ -263,19 +263,25 @@ function showCopyFeedback(btnEl, success) {
   }, 1500);
 }
 
-// 메모를 다른 앱으로 공유 (미지원 환경은 클립보드 복사로 대체)
+// 메모를 다른 앱으로 공유 (미지원/실패 환경은 클립보드 복사로 대체)
 function handleShare(id, btnEl) {
   const target = memos.find((memo) => memo.id === id);
   if (!target) return;
 
-  if (navigator.share) {
-    navigator.share({ title: target.title, text: target.content }).catch(() => {
-      // 사용자가 공유를 취소한 경우 등은 별도 처리 없이 무시
-    });
+  if (!navigator.share) {
+    handleCopy(id, btnEl);
     return;
   }
 
-  handleCopy(id, btnEl);
+  try {
+    navigator.share({ title: target.title, text: target.content }).catch((error) => {
+      if (error && error.name === 'AbortError') return; // 사용자가 공유를 취소한 경우
+      handleCopy(id, btnEl); // 공유 시도는 됐지만 실패한 경우 복사로 대체
+    });
+  } catch (error) {
+    // 브라우저가 navigator.share를 지원한다고 알렸지만 호출 자체가 즉시 실패하는 경우
+    handleCopy(id, btnEl);
+  }
 }
 
 // 메모 카드 위 버튼 클릭 처리 (이벤트 위임)
