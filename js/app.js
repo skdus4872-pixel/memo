@@ -71,12 +71,6 @@ tabs.forEach((tab) => {
   tab.addEventListener('click', () => switchTab(tab.dataset.tab));
 });
 
-// 가운데 + 버튼: 메모 탭으로 이동하면서 작성 폼도 바로 염
-document.getElementById('tabAddBtn').addEventListener('click', () => {
-  switchTab('memo');
-  document.getElementById('memoForm').classList.add('open');
-});
-
 // 카드형 폼 여닫기 공통 처리 (data-toggle 속성이 가리키는 id의 form-card를 토글)
 document.querySelectorAll('[data-toggle]').forEach((btn) => {
   btn.addEventListener('click', () => {

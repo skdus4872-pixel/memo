@@ -1,5 +1,5 @@
 // 캐시 이름 (파일 구조 변경 시 버전을 올려서 캐시 갱신)
-const CACHE_NAME = 'memolife-cache-v3';
+const CACHE_NAME = 'memolife-cache-v4';
 
 // 오프라인에서도 동작하도록 미리 캐싱할 핵심 파일 목록
 const CORE_ASSETS = [
