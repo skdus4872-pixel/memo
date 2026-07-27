@@ -157,6 +157,37 @@ function softDelete(storeKey, orderKey, item, label) {
   });
 }
 
+// 텍스트를 클립보드에 복사 (공유 대체 수단으로 사용)
+function copyToClipboard(text) {
+  if (!navigator.clipboard) {
+    toast('클립보드 복사를 지원하지 않는 환경이에요');
+    return;
+  }
+  navigator.clipboard
+    .writeText(text)
+    .then(() => toast('클립보드에 복사했어요'))
+    .catch(() => toast('복사에 실패했어요'));
+}
+
+// 메모를 다른 앱으로 공유 (미지원/실패 시 클립보드 복사로 대체)
+function shareMemo(memo) {
+  const text = `${memo.title || '제목 없음'}\n${memo.body || ''}`;
+
+  if (!navigator.share) {
+    copyToClipboard(text);
+    return;
+  }
+
+  try {
+    navigator.share({ title: memo.title || '메모', text: memo.body || '' }).catch((error) => {
+      if (error && error.name === 'AbortError') return; // 사용자가 공유를 취소한 경우
+      copyToClipboard(text);
+    });
+  } catch (error) {
+    copyToClipboard(text);
+  }
+}
+
 const MAX_PIN = 3;
 
 // 고정 on/off 토글 (최대 개수 제한, 고정 순서는 orderKey에 별도 저장)
@@ -230,6 +261,7 @@ function renderMemos() {
       </div>
       <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;">
         <button type="button" class="icon-x" data-action="pin">${m.pinned ? '고정 해제' : '상단 고정'}</button>
+        <button type="button" class="icon-x" data-action="share">공유</button>
         <button type="button" class="icon-x" data-action="edit">수정</button>
         <button type="button" class="icon-x" data-action="del">삭제</button>
       </div>
@@ -237,6 +269,7 @@ function renderMemos() {
 
     row.querySelector('[data-action="del"]').addEventListener('click', () => softDelete(K.memos, K.pinOrder, m, '메모'));
     row.querySelector('[data-action="pin"]').addEventListener('click', () => toggleMemoPin(m.id));
+    row.querySelector('[data-action="share"]').addEventListener('click', () => shareMemo(m));
     row.querySelector('[data-action="edit"]').addEventListener('click', () => {
       editingMemoId = m.id;
       document.getElementById('memoTitle').value = m.title || '';
