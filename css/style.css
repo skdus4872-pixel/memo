@@ -93,6 +93,7 @@ body {
    ============================================ */
 .topbar {
   padding: 22px 20px 10px;
+  padding-top: calc(env(safe-area-inset-top) + 37px); /* 상태바(시계)와 안 겹치도록 안전영역 + 여유 15px */
   display: flex;
   align-items: center;
   justify-content: space-between;
