@@ -1072,7 +1072,49 @@ function renderSearch() {
 }
 
 // ============================================
-// 전체 다시 그리기 (백업 기능은 11단계에서 추가될 예정)
+// 데이터 백업 (내보내기 / 가져오기)
+// ============================================
+document.getElementById('backupExportBtn').addEventListener('click', () => {
+  const data = {};
+  Object.entries(K).forEach(([name, key]) => {
+    data[name] = load(key, null);
+  });
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `memolife-backup-${todayStr()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('백업 파일을 저장했어요');
+});
+
+document.getElementById('backupImportBtn').addEventListener('click', () => {
+  document.getElementById('backupFileInput').click();
+});
+
+document.getElementById('backupFileInput').addEventListener('change', (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(reader.result);
+      Object.entries(K).forEach(([name, key]) => {
+        if (data[name] !== undefined && data[name] !== null) save(key, data[name]);
+      });
+      renderAll();
+      toast('백업을 불러왔어요');
+    } catch (error) {
+      toast('파일을 읽을 수 없어요');
+    }
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+});
+
+// ============================================
+// 전체 다시 그리기
 // ============================================
 function renderAll() {
   renderHome();

@@ -84,7 +84,14 @@
       <div class="card" id="lastYearCard" style="display:none;"></div>
       <div class="section-label">데이터 백업</div>
       <div class="card">
-        <p class="empty" style="padding:6px 0;">백업 내보내기/가져오기는 11단계에서 만들 예정이에요.</p>
+        <div style="font-size:12px;color:var(--ink-soft);margin-bottom:10px;">
+          모든 메모·일정·가계부 기록을 파일로 저장하거나 불러올 수 있어요.
+        </div>
+        <div class="row2">
+          <button type="button" class="btn" id="backupExportBtn" style="background:var(--mint-ink);">내보내기</button>
+          <button type="button" class="btn" id="backupImportBtn" style="background:var(--lav-ink);">가져오기</button>
+        </div>
+        <input type="file" id="backupFileInput" accept="application/json" style="display:none;">
       </div>
     </div>
 
