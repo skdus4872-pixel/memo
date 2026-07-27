@@ -34,13 +34,58 @@
         <div class="date" id="todayDate"></div>
       </div>
       <div style="display:flex;gap:8px;">
+        <button type="button" class="icon-btn" id="searchBtn" title="검색">🔍</button>
         <button type="button" class="icon-btn" id="themeBtn" title="다크모드">🌙</button>
+        <button type="button" class="icon-btn" id="shareBtn" title="공유">↗</button>
       </div>
     </div>
 
-    <!-- 홈 (10단계에서 구현 예정) -->
+    <!-- 검색 -->
+    <div class="screen" id="screen-search">
+      <div class="section-label">통합 검색</div>
+      <input type="text" id="searchInput" placeholder="메모, 일정, 가계부 내용 검색">
+      <div class="quick-row" style="margin-top:4px;">
+        <div class="pill-btn filter-chip active" data-filter="all">전체</div>
+        <div class="pill-btn filter-chip" data-filter="memo">메모</div>
+        <div class="pill-btn filter-chip" data-filter="sched">일정</div>
+        <div class="pill-btn filter-chip" data-filter="tx">가계부</div>
+      </div>
+      <div class="section-label">검색 결과</div>
+      <div id="searchResults"></div>
+    </div>
+
+    <!-- 홈 -->
     <div class="screen active" id="screen-home">
-      <p class="empty">홈 화면은 10단계에서 만들 예정이에요.</p>
+      <div class="today-card">
+        <div style="font-size:12px;opacity:0.85;">오늘의 기록</div>
+        <div class="big" id="homeGreeting">오늘도 잘 기록해봐요</div>
+        <div class="today-row">
+          <div class="today-chip">일정<b id="homeSchedCount">0건</b></div>
+          <div class="today-chip">메모<b id="homeMemoCount">0건</b></div>
+          <div class="today-chip">지출<b id="homeSpendCount">0원</b></div>
+        </div>
+      </div>
+      <div class="section-label">빠른 기록</div>
+      <div class="quick-row">
+        <div class="pill-btn" data-goto="memo">+ 메모</div>
+        <div class="pill-btn" data-goto="calendar">+ 일정</div>
+        <div class="pill-btn" data-goto="budget">+ 지출</div>
+      </div>
+      <div class="section-label" id="pinnedLabel" style="display:none;">📌 고정 메모</div>
+      <div class="pin-grid" id="pinnedMemos" style="display:none;margin-bottom:6px;"></div>
+      <div class="section-label" id="pinnedSchedLabel" style="display:none;">📌 고정 일정</div>
+      <div class="pin-grid" id="pinnedSched" style="display:none;margin-bottom:6px;"></div>
+      <div class="section-label" id="pinnedTxLabel" style="display:none;">📌 고정 내역</div>
+      <div class="pin-grid" id="pinnedTx" style="display:none;margin-bottom:6px;"></div>
+      <div class="section-label">오늘의 타임라인</div>
+      <div class="card" id="homeTimeline"></div>
+      <div class="section-label">돌아보기</div>
+      <div class="card" id="weekCompareCard"></div>
+      <div class="card" id="lastYearCard" style="display:none;"></div>
+      <div class="section-label">데이터 백업</div>
+      <div class="card">
+        <p class="empty" style="padding:6px 0;">백업 내보내기/가져오기는 11단계에서 만들 예정이에요.</p>
+      </div>
     </div>
 
     <!-- 메모 -->

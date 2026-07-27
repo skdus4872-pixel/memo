@@ -820,12 +820,272 @@ document.getElementById('txSave').addEventListener('click', () => {
 });
 
 // ============================================
-// 전체 다시 그리기 (홈 화면은 10단계에서 추가될 예정)
+// 홈 대시보드
+// ============================================
+function homeCount() {
+  const t = todayStr();
+  const memo = load(K.memos, []).filter((m) => m.date === t).length;
+  const sched = load(K.sched, []).filter((s) => s.date === t).length;
+  const spend = load(K.tx, []).filter((x) => x.date === t && x.type === 'expense').reduce((a, b) => a + Number(b.amount), 0);
+  return { memo, sched, spend };
+}
+
+// 고정 항목 3열 카드 그리드 렌더링 (메모/일정/가계부 공통 패턴)
+function renderPinGrid({ boxId, labelId, items, cls, tag, toGo, onUnpin, cardText }) {
+  const box = document.getElementById(boxId);
+  const label = document.getElementById(labelId);
+  box.style.display = items.length ? 'grid' : 'none';
+  label.style.display = items.length ? 'block' : 'none';
+  box.innerHTML = '';
+  items.forEach((item) => {
+    const card = document.createElement('div');
+    card.className = `pin-card ${cls}`;
+    const { title, sub, subStyle } = cardText(item);
+    card.innerHTML = `
+      <button type="button" class="pin-x" data-action="unpin">✕</button>
+      <div class="pin-tag">${tag}</div>
+      <div class="pin-body">
+        <div class="pin-title">${title}</div>
+        <div class="pin-sub"${subStyle ? ` style="${subStyle}"` : ''}>${sub}</div>
+      </div>
+    `;
+    card.addEventListener('click', () => switchTab(toGo));
+    card.querySelector('[data-action="unpin"]').addEventListener('click', (event) => {
+      event.stopPropagation();
+      onUnpin(item.id);
+    });
+    box.append(card);
+  });
+}
+
+function renderHome() {
+  const c = homeCount();
+  document.getElementById('homeMemoCount').textContent = `${c.memo}건`;
+  document.getElementById('homeSchedCount').textContent = `${c.sched}건`;
+  document.getElementById('homeSpendCount').textContent = `${c.spend.toLocaleString()}원`;
+  document.getElementById('homeGreeting').textContent = c.memo + c.sched + c.spend > 0 ? '오늘도 잘 기록했어요' : '오늘도 잘 기록해봐요';
+
+  const memoOrder = memoPinOrder();
+  renderPinGrid({
+    boxId: 'pinnedMemos',
+    labelId: 'pinnedLabel',
+    items: load(K.memos, []).filter((m) => m.pinned).sort((a, b) => memoOrder.indexOf(a.id) - memoOrder.indexOf(b.id)),
+    cls: 'c-memo',
+    tag: '📝',
+    toGo: 'memo',
+    onUnpin: toggleMemoPin,
+    cardText: (m) => ({ title: escapeHtml(m.title || '제목 없음'), sub: escapeHtml(m.body || '') }),
+  });
+
+  const schedOrder = schedPinOrder();
+  renderPinGrid({
+    boxId: 'pinnedSched',
+    labelId: 'pinnedSchedLabel',
+    items: load(K.sched, []).filter((s) => s.pinned).sort((a, b) => schedOrder.indexOf(a.id) - schedOrder.indexOf(b.id)),
+    cls: 'c-cal',
+    tag: '📅',
+    toGo: 'calendar',
+    onUnpin: toggleSchedPin,
+    cardText: (s) => ({ title: escapeHtml(s.title), sub: `${s.date.slice(5)} ${s.time || ''}` }),
+  });
+
+  const txOrder = txPinOrder();
+  renderPinGrid({
+    boxId: 'pinnedTx',
+    labelId: 'pinnedTxLabel',
+    items: load(K.tx, []).filter((x) => x.pinned).sort((a, b) => txOrder.indexOf(a.id) - txOrder.indexOf(b.id)),
+    cls: 'c-tx',
+    tag: '💰',
+    toGo: 'budget',
+    onUnpin: toggleTxPin,
+    cardText: (x) => ({
+      title: `${escapeHtml(x.category)}${x.memo ? ` · ${escapeHtml(x.memo)}` : ''}`,
+      sub: `${x.type === 'income' ? '+' : '-'}${Number(x.amount).toLocaleString()}원`,
+      subStyle: `color:${x.type === 'income' ? 'var(--pine)' : 'var(--red)'};`,
+    }),
+  });
+
+  // 오늘의 타임라인 (오늘 등록된 메모/일정/가계부 전부)
+  const t = todayStr();
+  const toggleFor = { memo: toggleMemoPin, sched: toggleSchedPin, tx: toggleTxPin };
+  const items = [
+    ...load(K.sched, []).filter((s) => s.date === t).map((s) => ({ id: s.id, type: 'sched', label: s.title, tag: 'cal', tagText: s.time || '일정', pinned: Boolean(s.pinned) })),
+    ...load(K.memos, []).filter((m) => m.date === t).map((m) => ({ id: m.id, type: 'memo', label: m.title || '제목 없음', tag: 'memo', tagText: '메모', pinned: Boolean(m.pinned) })),
+    ...load(K.tx, []).filter((x) => x.date === t).map((x) => ({ id: x.id, type: 'tx', label: `${x.category}${x.memo ? ` · ${x.memo}` : ''}`, tag: 'money', tagText: `${Number(x.amount).toLocaleString()}원`, pinned: Boolean(x.pinned) })),
+  ];
+  const tl = document.getElementById('homeTimeline');
+  tl.innerHTML = items.length ? '' : '<div class="empty">오늘 아직 기록이 없어요. 메모나 일정을 남겨보세요.</div>';
+  items.forEach((it) => {
+    const row = document.createElement('div');
+    row.className = `list-item ${it.type === 'memo' ? 'c-memo' : it.type === 'sched' ? 'c-cal' : 'c-expense'}`;
+    row.innerHTML = `
+      <div><span class="tag ${it.tag}">${it.tag === 'cal' ? '일정' : it.tag === 'memo' ? '메모' : '지출'}</span>
+        <span class="title">${it.pinned ? '📌 ' : ''}${escapeHtml(it.label)}</span></div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div class="sub">${escapeHtml(it.tagText)}</div>
+        <button type="button" class="icon-x" data-action="toggle-pin">${it.pinned ? '고정 해제' : '고정'}</button>
+      </div>
+    `;
+    row.querySelector('[data-action="toggle-pin"]').addEventListener('click', () => toggleFor[it.type](it.id));
+    tl.append(row);
+  });
+
+  // 이번 주 vs 지난 주 지출 비교
+  const now = new Date();
+  const dow = now.getDay();
+  const mondayOffset = dow === 0 ? -6 : 1 - dow;
+  const thisMonStr = addDays(todayStr(), mondayOffset);
+  const lastMonStr = addDays(thisMonStr, -7);
+  const allTx = load(K.tx, []);
+  const sumRange = (startStr, days) => {
+    let sum = 0;
+    for (let i = 0; i < days; i++) {
+      const d = addDays(startStr, i);
+      if (d > todayStr()) break;
+      sum += allTx.filter((x) => x.date === d && x.type === 'expense').reduce((a, b) => a + Number(b.amount), 0);
+    }
+    return sum;
+  };
+  const thisWeekSpend = sumRange(thisMonStr, 7);
+  const lastWeekSpend = allTx
+    .filter((x) => x.type === 'expense' && x.date >= lastMonStr && x.date < thisMonStr)
+    .reduce((a, b) => a + Number(b.amount), 0);
+  const diff = thisWeekSpend - lastWeekSpend;
+  const weekCard = document.getElementById('weekCompareCard');
+  const maxW = Math.max(thisWeekSpend, lastWeekSpend, 1);
+  weekCard.innerHTML = `
+    <div class="section-label" style="margin:0 0 8px;">이번 주 지출 vs 지난 주</div>
+    <div class="bar-row"><div class="top"><span>이번 주</span><span>${thisWeekSpend.toLocaleString()}원</span></div>
+      <div class="bar-track"><div class="bar-fill" style="width:${Math.round((thisWeekSpend / maxW) * 100)}%"></div></div></div>
+    <div class="bar-row" style="margin-bottom:2px;"><div class="top"><span>지난 주</span><span>${lastWeekSpend.toLocaleString()}원</span></div>
+      <div class="bar-track"><div class="bar-fill" style="width:${Math.round((lastWeekSpend / maxW) * 100)}%;background:var(--ink-soft);"></div></div></div>
+    <div style="font-size:11.5px;color:${diff > 0 ? 'var(--red)' : 'var(--mint-ink)'};margin-top:6px;">
+      ${diff === 0 ? '지난 주와 지출이 같아요' : diff > 0 ? `지난 주보다 ${diff.toLocaleString()}원 더 썼어요` : `지난 주보다 ${Math.abs(diff).toLocaleString()}원 덜 썼어요`}
+    </div>`;
+
+  // 1년 전 오늘
+  const lastYearDate = (() => {
+    const d = new Date();
+    d.setFullYear(d.getFullYear() - 1);
+    return d.toISOString().slice(0, 10);
+  })();
+  const lyMemos = load(K.memos, []).filter((m) => m.date === lastYearDate);
+  const lySched = load(K.sched, []).filter((s) => s.date === lastYearDate);
+  const lyTx = load(K.tx, []).filter((x) => x.date === lastYearDate);
+  const lyCard = document.getElementById('lastYearCard');
+  const lyItems = [
+    ...lyMemos.map((m) => ({ cls: 'c-memo', tag: 'memo', tagText: '메모', title: m.title || '제목 없음', sub: m.body || '' })),
+    ...lySched.map((s) => ({ cls: 'c-cal', tag: 'cal', tagText: '일정', title: s.title, sub: s.time || '' })),
+    ...lyTx.map((x) => ({ cls: x.type === 'income' ? 'c-income' : 'c-expense', tag: 'money', tagText: '가계부', title: `${x.category}${x.memo ? ` · ${x.memo}` : ''}`, sub: `${x.type === 'income' ? '+' : '-'}${Number(x.amount).toLocaleString()}원` })),
+  ];
+  if (lyItems.length) {
+    lyCard.style.display = 'block';
+    lyCard.innerHTML = `<div class="section-label" style="margin:0 0 8px;">1년 전 오늘 (${lastYearDate})</div>${lyItems
+      .map((it) => `<div class="list-item ${it.cls}" style="margin-bottom:6px;box-shadow:none;">
+        <div><span class="tag ${it.tag}">${it.tagText}</span><span class="title">${escapeHtml(it.title)}</span></div>
+        <div class="sub">${escapeHtml(it.sub)}</div></div>`)
+      .join('')}`;
+  } else {
+    lyCard.style.display = 'none';
+  }
+}
+
+// "+ 메모" 등 빠른 기록 버튼: 해당 탭으로 이동
+document.querySelectorAll('[data-goto]').forEach((el) => {
+  el.addEventListener('click', () => switchTab(el.dataset.goto));
+});
+
+// 상단 공유 버튼: 오늘 요약을 공유 (미지원/실패 시 클립보드 복사)
+document.getElementById('shareBtn').addEventListener('click', () => {
+  const c = homeCount();
+  const text = `메모라이프 - 오늘 일정 ${c.sched}건, 메모 ${c.memo}건, 지출 ${c.spend.toLocaleString()}원`;
+  if (!navigator.share) {
+    copyToClipboard(text);
+    return;
+  }
+  try {
+    navigator.share({ title: '메모라이프', text }).catch((error) => {
+      if (error && error.name === 'AbortError') return;
+      copyToClipboard(text);
+    });
+  } catch (error) {
+    copyToClipboard(text);
+  }
+});
+
+// ============================================
+// 통합 검색
+// ============================================
+let searchFilter = 'all';
+
+document.getElementById('searchBtn').addEventListener('click', () => {
+  switchTab('search');
+  document.getElementById('searchInput').focus();
+});
+
+document.getElementById('searchInput').addEventListener('input', renderSearch);
+
+document.querySelectorAll('.filter-chip').forEach((chip) => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('.filter-chip').forEach((c) => c.classList.remove('active'));
+    chip.classList.add('active');
+    searchFilter = chip.dataset.filter;
+    renderSearch();
+  });
+});
+
+function renderSearch() {
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  const box = document.getElementById('searchResults');
+  const results = [];
+
+  if (searchFilter === 'all' || searchFilter === 'memo') {
+    results.push(
+      ...load(K.memos, [])
+        .filter((m) => !q || (m.title || '').toLowerCase().includes(q) || (m.body || '').toLowerCase().includes(q))
+        .map((m) => ({ id: m.id, type: 'memo', date: m.date, title: m.title || '제목 없음', sub: m.body || '', cls: 'c-memo', tag: 'memo', tagText: '메모', go: 'memo' }))
+    );
+  }
+  if (searchFilter === 'all' || searchFilter === 'sched') {
+    results.push(
+      ...load(K.sched, [])
+        .filter((s) => !q || s.title.toLowerCase().includes(q))
+        .map((s) => ({ id: s.id, type: 'sched', date: s.date, title: s.title, sub: `${s.date} · ${s.time || '시간 미정'}`, cls: 'c-cal', tag: 'cal', tagText: '일정', go: 'calendar' }))
+    );
+  }
+  if (searchFilter === 'all' || searchFilter === 'tx') {
+    results.push(
+      ...load(K.tx, [])
+        .filter((x) => !q || x.category.toLowerCase().includes(q) || (x.memo || '').toLowerCase().includes(q))
+        .map((x) => ({ id: x.id, type: 'tx', date: x.date, title: `${x.category}${x.memo ? ` · ${x.memo}` : ''}`, sub: `${x.date} · ${x.type === 'income' ? '+' : '-'}${Number(x.amount).toLocaleString()}원`, cls: x.type === 'income' ? 'c-income' : 'c-expense', tag: 'money', tagText: '가계부', go: 'budget' }))
+    );
+  }
+
+  results.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : b.id - a.id));
+  box.innerHTML = results.length ? '' : `<div class="empty">${q ? '검색 결과가 없어요.' : '검색어를 입력하거나 위 필터로 둘러보세요.'}</div>`;
+  results.forEach((r) => {
+    const row = document.createElement('div');
+    row.className = `list-item ${r.cls}`;
+    row.style.cursor = 'pointer';
+    row.innerHTML = `
+      <div><span class="tag ${r.tag}">${r.tagText}</span>
+        <span class="title">${escapeHtml(r.title)}</span></div>
+      <div class="sub">${escapeHtml(r.sub)}</div>
+    `;
+    row.addEventListener('click', () => switchTab(r.go));
+    box.append(row);
+  });
+}
+
+// ============================================
+// 전체 다시 그리기 (백업 기능은 11단계에서 추가될 예정)
 // ============================================
 function renderAll() {
+  renderHome();
   renderMemos();
   renderCalendar();
   renderBudget();
+  renderSearch();
 }
 
 renderAll();
