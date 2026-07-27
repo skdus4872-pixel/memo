@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>내 메모장</title>
+  <meta name="description" content="오프라인에서도 사용 가능한 간편 메모 앱">
+  <meta name="theme-color" content="#4A90E2">
+
+  <!-- PWA 매니페스트 -->
+  <link rel="manifest" href="manifest.json">
+
+  <!-- 아이콘 -->
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192x192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+
+  <!-- 스타일시트 -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- 상단 헤더 -->
+  <header class="app-header">
+    <h1 class="app-title">내 메모장</h1>
+    <button type="button" class="theme-toggle-btn" id="themeToggleBtn" aria-label="다크모드로 전환">🌙</button>
+  </header>
+
+  <!-- 검색 & 정렬 -->
+  <div class="controls-bar">
+    <input type="text" id="searchInput" class="search-input" placeholder="제목, 내용 검색" aria-label="메모 검색">
+    <select id="sortSelect" class="sort-select" aria-label="정렬 기준">
+      <option value="newest">최신순</option>
+      <option value="oldest">오래된순</option>
+    </select>
+  </div>
+
+  <!-- 메모 목록 -->
+  <main class="memo-list" id="memoList">
+    <p class="empty-state" id="emptyState">아직 메모가 없어요. 오른쪽 아래 버튼을 눌러 첫 메모를 남겨보세요.</p>
+  </main>
+
+  <!-- 메모 추가 버튼 -->
+  <button class="fab" id="addMemoBtn" aria-label="메모 추가">+</button>
+
+  <!-- 메모 작성/수정 모달 -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modalTitle">새 메모</h2>
+        <button type="button" class="icon-btn" id="closeModalBtn" aria-label="닫기">&times;</button>
+      </div>
+      <form id="memoForm">
+        <input type="text" id="memoTitleInput" class="memo-input" placeholder="제목" maxlength="60" required>
+        <textarea id="memoContentInput" class="memo-textarea" placeholder="내용을 입력하세요" rows="6" required></textarea>
+        <input type="text" id="memoTagsInput" class="memo-input" placeholder="태그 (쉼표로 구분, 예: 업무, 아이디어)">
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="cancelBtn">취소</button>
+          <button type="submit" class="btn btn-primary">저장</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
