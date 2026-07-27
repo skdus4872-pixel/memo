@@ -1,13 +1,14 @@
 {
-  "name": "내 메모장",
-  "short_name": "내 메모장",
-  "description": "오프라인에서도 사용 가능한 간편 메모 앱",
+  "name": "메모라이프",
+  "short_name": "메모라이프",
+  "description": "메모, 일정, 가계부를 한 번에 기록하는 통합 앱",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#FFFFFF",
-  "theme_color": "#4A90E2",
+  "background_color": "#FAFAF9",
+  "theme_color": "#22262B",
+  "lang": "ko",
   "icons": [
     {
       "src": "icons/icon-192x192.png",
