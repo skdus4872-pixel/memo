@@ -3,23 +3,26 @@
 ## 프로젝트 개요
 
 ### 기본 정보
-- **주제**: PWA 기반 오프라인 메모장 애플리케이션
-- **프로젝트명**: 내 메모장
-- **배포 URL**: https://memo-jade-mu.vercel.app
+- **주제**: PWA 기반 오프라인 라이프 관리 애플리케이션 (메모 + 캘린더 + 가계부)
+- **프로젝트명**: 메모라이프
+- **배포 URL**: https://memo-jade-mu.vercel.app (v2 배포 후 갱신 예정)
+
+> **2026-07-27 프로젝트 확장 안내**: 기존 "내 메모장"(메모 전용 앱, 1~5단계 완료·배포됨)에서 범위를 확장해, 사용자가 참고 자료로 제공한 `memolife.html`(캘린더/가계부 포함, 폰 프레임 UI) 디자인·기능을 기준으로 앱을 새로 구성함. 기존 "내 메모장"의 완료 기록은 `PROGRESS.md`와 아래 1~5단계에 히스토리로 남겨두고, 6단계부터 새 범위로 진행. 기존에 배포 환경에 저장돼 있던 테스트 메모 데이터는 사용자 확인 하에 새로 시작(마이그레이션 안 함).
 
 ### 목적
-- 오프라인에서도 빠르고 간편하게 메모를 기록/관리할 수 있는 PWA 제공
+- 메모, 일정(캘린더), 가계부(수입/지출)를 한 앱에서 오프라인으로 기록/관리
 
 ### 타깃 사용자
-- 수업 중 메모, 아이디어 기록, 장보기 리스트 등 일상적인 메모가 필요한 일반 사용자
+- 메모, 일정, 지출을 여러 앱에 나눠 쓰지 않고 한 곳에서 간단히 관리하고 싶은 일반 사용자
 
 ### 톤 & 비주얼 컨셉
-- 심플하고 깔끔한, 모던한 분위기
+- `memolife.html` 기준: 폰 프레임 목업 스타일, 라운드가 큰 카드형 UI, 파스텔 톤 카테고리 색상(민트/라벤더/핑크/그린) + 무채색 기본 톤
 
 ### 하지 않을 것 (Non-goals) — 잠정, 진행하며 조정 가능
 - 서버 동기화/로그인/협업 기능 (데이터는 localStorage 기반 로컬 저장만)
 - 리치 텍스트 편집, 이미지/파일 첨부
 - 체크리스트에 없는 기능 임의 추가
+- 기존 "내 메모장"(v1) 테스트 데이터 마이그레이션 (새로 시작하기로 결정됨)
 
 ## 작업 규칙
 
@@ -74,35 +77,48 @@
 
 ## 디자인 기획
 
+> 아래 값은 `memolife.html` 참고 파일에서 그대로 가져온 디자인 시스템 (2026-07-27 결정: memolife.html 디자인으로 전면 교체)
+
 ### 컬러 시스템
 
-#### Brand Colors
-- Primary: #4A90E2 (파랑)
-- Secondary: #F5F5F5 (회색)
-
-#### Light Mode
-- Background: #FFFFFF
-- Surface: #F5F5F5
-- Text: #1E1E1E
+#### Light Mode (기본)
+- Background(바깥): #EDEDEB / Frame Background: #FAFAF9
+- Card: #FFFFFF
+- Ink(텍스트): #22262B / Ink-soft(보조 텍스트): #9599A2
+- Border: #F0F0EE
+- Accent(강조, 버튼 등): bg #22262B, ink #FFFFFF
 
 #### Dark Mode
-- Background: #1E1E1E
-- Surface: #2A2A2A
-- Text: #F5F5F5
+- Background(바깥): #0D0E10 / Frame Background: #17181B
+- Card: #1F2124
+- Ink: #EDEEEF / Ink-soft: #8B8E94
+- Border: #2B2D31
+- Accent: bg #ECECEC, ink #181A1D
+
+#### 카테고리 색상 (Light → Dark)
+- Mint(메모): bg #DFF3EA→#16281F, ink #2F8F68→#7FE0BC
+- Lavender(캘린더): bg #E8E4FB→#221D3C, ink #6C5CE0→#BBADF7
+- Pink(지출/가계부): bg #FDE3EC→#34202B, ink #D6488C→#F3A8C8
+- Green(수입): bg #E5F5E1→#1B2A18, ink #4C9A3F→#9BDD8B
 
 #### CSS 변수 선언 규칙
-- `:root`에 라이트모드 변수 선언, `[data-theme="dark"]`(또는 `.dark`)에서 다크모드 변수 오버라이드
-- 변수명: `--color-primary`, `--color-bg`, `--color-surface`, `--color-text` 등 의미 기반 네이밍
+- `:root`에 라이트모드 변수 선언, `[data-theme="dark"]`에서 다크모드 변수 오버라이드
+- 변수명: `--bg`, `--card`, `--ink`, `--ink-soft`, `--border`, `--accent-bg`, `--accent-ink`, `--mint-bg`/`--mint-ink` 등 memolife.html 네이밍 그대로 유지 (일관성 위해 임의 변경 금지)
 
 ### 타이포그래피
-- Pretendard (웹폰트 CDN 또는 시스템 폰트 fallback)
+- 본문: 'Nanum Gothic', 'Inter', -apple-system, 'Apple SD Gothic Neo', sans-serif
+- 브랜드 로고: 'Elms Sans'
+- 숫자(금액 등): 'Bitcount Grid Double', 'Oswald', monospace 계열
+- Google Fonts CDN 사용 (`fonts.googleapis.com`) — 오프라인 최초 접속 시 폰트는 시스템 폰트로 대체되고, 이후 접속부터는 브라우저 캐시로 로드됨
 
 ### 아이콘
-- **라이브러리**: Lucide (정적 SVG/CDN 방식 — 프로젝트가 Vanilla JS이므로 lucide-react 대신 lucide 아이콘 SVG를 직접 삽입하거나 CDN 스크립트로 사용)
+- 별도 아이콘 라이브러리 없이 이모지 사용 (📝 캘린더 📅 가계부 💰 등, memolife.html 방식 그대로)
 
 ### UI 레이아웃 규칙
-- 모바일 우선(반응형), 메인 화면은 메모 카드 리스트 + 하단/우하단 메모 추가 버튼(FAB)
-- 메모 작성/수정은 별도 화면 또는 모달로 처리
+- 폰 프레임(`.frame`, 402×874px, 라운드 44px) 안에 전체 UI가 들어가는 목업 스타일
+- 상단바(로고+날짜, 우측 다크모드 토글) → 스크린 영역(탭별 전환, `.screen.active`) → 하단 플로팅 탭바(메모/＋추가/캘린더/가계부)
+- 화면 전환은 탭 클릭 시 `.screen`에 `active` 클래스 토글 (라우팅 없이 단일 페이지 내 전환)
+- 삭제는 즉시 삭제가 아니라 토스트로 "실행취소" 제공하는 소프트 삭제 패턴
 
 ## 파일 구조
 
@@ -138,16 +154,44 @@
 
 ---
 
-## 메모 데이터 구조
+## 데이터 구조 (v2, memolife.html 기준)
 
+> localStorage 키: `memolife_memos`, `memolife_schedules`, `memolife_transactions`, `memolife_theme`, `memolife_pin_order`, `memolife_sched_pin_order`, `memolife_tx_pin_order`, `memolife_budget`, `memolife_categories`
+
+### 메모
 ```js
 {
-  id: 1,              // 고유 ID (timestamp 등)
+  id: 1,              // 고유 ID (Date.now())
   title: "메모 제목",
-  content: "메모 내용",
-  date: "2024-12-25",  // 작성/수정일
-  tags: [],             // 태그 목록
-  isFavorite: false     // 즐겨찾기 여부
+  body: "메모 내용",
+  date: "2024-12-25",
+  pinned: false        // 최대 개수 제한 있음 (MAX_PIN)
+}
+```
+
+### 일정 (캘린더)
+```js
+{
+  id: 1,
+  title: "일정 제목",
+  date: "2024-12-25",   // YYYY-MM-DD
+  time: "14:00",         // 선택, 없으면 "시간 미정"
+  repeat: "none",         // none | (반복 옵션)
+  notify: false,          // 해당 시간에 브라우저 알림
+  pinned: false
+}
+```
+
+### 가계부 (거래 내역)
+```js
+{
+  id: 1,
+  type: "expense",      // expense | income
+  amount: 10000,
+  category: "식비",
+  date: "2024-12-25",
+  memo: "",
+  pinned: false
 }
 ```
 
@@ -213,3 +257,58 @@
 
 - [x] 메모 개수 표시 (2026-07-27)
 - [x] 중요 메모 고정 (2026-07-27)
+
+---
+
+# v2. 메모라이프 확장 (2026-07-27~)
+
+> 아래부터는 `memolife.html` 참고 기준으로 범위를 확장한 새 단계. 위 1~5단계(v1 "내 메모장")는 완료된 상태로 유지하되, 화면/데이터 구조는 v2로 교체됨.
+
+## 6단계. 디자인 시스템 + 앱 골격
+
+- [x] 폰 프레임 레이아웃 (`.frame`) + 전역 컬러/폰트 변수 (`css/style.css` 재작성) (2026-07-27)
+- [x] 상단바 (로고, 날짜, 다크모드 토글 버튼) (2026-07-27)
+- [x] 하단 탭바 (홈 / 메모 / ＋추가 / 캘린더 / 가계부) (2026-07-27)
+- [x] 화면 전환 로직 (`switchTab`, `.screen.active` 토글) (2026-07-27)
+- [x] 토스트 + 실행취소 액션 지원 공통 함수 (`toast()`, 실제 소프트 삭제 적용은 7~9단계에서) (2026-07-27)
+
+## 7단계. 메모 탭 (memolife 방식)
+
+- [x] 메모 추가/수정/삭제 (소프트 삭제+실행취소) (2026-07-27)
+- [x] 메모 고정(pin, 최대 3개 제한, 드래그로 순서 변경) (2026-07-27)
+- [x] localStorage 저장/불러오기 (`memolife_memos`) (2026-07-27)
+
+## 8단계. 캘린더 탭
+
+- [x] 월 달력 뷰 (`renderCalendar`) (2026-07-27)
+- [x] 일정 추가/수정/삭제, 날짜 선택 (2026-07-27)
+- [x] 반복 일정 옵션 (2026-07-27)
+- [x] 시간 알림 (브라우저 Notification API) (2026-07-27)
+- [x] 일정 고정(pin) (2026-07-27)
+
+## 9단계. 가계부 탭
+
+- [x] 수입/지출 기록 추가/수정/삭제 (2026-07-27)
+- [x] 카테고리 관리 (추가/삭제, 사용 중인 카테고리 삭제 방지) (2026-07-27)
+- [x] 이번 달 수입/지출 통계 (2026-07-27)
+- [x] 예산 설정 및 초과 시 경고 (2026-07-27)
+- [x] 거래 고정(pin) (2026-07-27)
+
+## 10단계. 홈 대시보드 & 통합 검색
+
+- [ ] 오늘 요약 카드 (일정/메모/지출 건수)
+- [ ] 최근 항목 리스트
+- [ ] 통합 검색 (메모+일정+가계부, 필터 칩)
+- [ ] 빠른 이동 버튼 (+ 메모, + 일정 등)
+
+## 11단계. 설정 & 백업
+
+- [ ] 데이터 내보내기 (JSON 백업 파일 저장)
+- [ ] 데이터 가져오기 (백업 파일 복원)
+
+## 12단계. PWA 재검증 & 배포
+
+- [ ] manifest.json / service-worker.js 캐시 목록 갱신 (새 파일 구조 반영)
+- [ ] 오프라인 작동 재검증
+- [ ] 홈 화면 설치 재검증
+- [ ] Vercel 재배포 및 실기기 최종 확인

@@ -2,10 +2,13 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>내 메모장</title>
-  <meta name="description" content="오프라인에서도 사용 가능한 간편 메모 앱">
-  <meta name="theme-color" content="#4A90E2">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+  <title>메모라이프</title>
+  <meta name="description" content="메모, 일정, 가계부를 한 곳에서 관리하는 오프라인 라이프 관리 앱">
+  <meta name="theme-color" content="#22262B">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="메모라이프">
 
   <!-- PWA 매니페스트 -->
   <link rel="manifest" href="manifest.json">
@@ -14,53 +17,132 @@
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192x192.png">
   <link rel="apple-touch-icon" href="icons/icon-192x192.png">
 
+  <!-- 웹폰트 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bitcount+Grid+Double:wght@100..900&family=Elms+Sans:ital,wght@0,100..900;1,100..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Nanum+Gothic:wght@400;700&family=Oswald:wght@200..700&display=swap" rel="stylesheet">
+
   <!-- 스타일시트 -->
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <!-- 상단 헤더 -->
-  <header class="app-header">
-    <h1 class="app-title">내 메모장</h1>
-    <button type="button" class="theme-toggle-btn" id="themeToggleBtn" aria-label="다크모드로 전환">🌙</button>
-  </header>
-
-  <!-- 검색 & 정렬 -->
-  <div class="controls-bar">
-    <input type="text" id="searchInput" class="search-input" placeholder="제목, 내용 검색" aria-label="메모 검색">
-    <select id="sortSelect" class="sort-select" aria-label="정렬 기준">
-      <option value="newest">최신순</option>
-      <option value="oldest">오래된순</option>
-    </select>
-  </div>
-
-  <!-- 메모 개수 -->
-  <p class="memo-count" id="memoCount"></p>
-
-  <!-- 메모 목록 -->
-  <main class="memo-list" id="memoList">
-    <p class="empty-state" id="emptyState">아직 메모가 없어요. 오른쪽 아래 버튼을 눌러 첫 메모를 남겨보세요.</p>
-  </main>
-
-  <!-- 메모 추가 버튼 -->
-  <button class="fab" id="addMemoBtn" aria-label="메모 추가">+</button>
-
-  <!-- 메모 작성/수정 모달 -->
-  <div class="modal-overlay" id="modalOverlay">
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-      <div class="modal-header">
-        <h2 class="modal-title" id="modalTitle">새 메모</h2>
-        <button type="button" class="icon-btn" id="closeModalBtn" aria-label="닫기">&times;</button>
+  <div class="frame" id="frame">
+    <!-- 상단바 -->
+    <div class="topbar">
+      <div>
+        <div class="brand">메모<span>라이프</span></div>
+        <div class="date" id="todayDate"></div>
       </div>
-      <form id="memoForm">
-        <input type="text" id="memoTitleInput" class="memo-input" placeholder="제목" maxlength="60" required>
-        <textarea id="memoContentInput" class="memo-textarea" placeholder="내용을 입력하세요" rows="6" required></textarea>
-        <input type="text" id="memoTagsInput" class="memo-input" placeholder="태그 (쉼표로 구분, 예: 업무, 아이디어)">
-        <div class="modal-actions">
-          <button type="button" class="btn btn-secondary" id="cancelBtn">취소</button>
-          <button type="submit" class="btn btn-primary">저장</button>
-        </div>
-      </form>
+      <div style="display:flex;gap:8px;">
+        <button type="button" class="icon-btn" id="themeBtn" title="다크모드">🌙</button>
+      </div>
     </div>
+
+    <!-- 홈 (10단계에서 구현 예정) -->
+    <div class="screen active" id="screen-home">
+      <p class="empty">홈 화면은 10단계에서 만들 예정이에요.</p>
+    </div>
+
+    <!-- 메모 -->
+    <div class="screen" id="screen-memo">
+      <div class="section-label">메모</div>
+      <button type="button" class="add-toggle" data-toggle="memoForm" id="memoToggleBtn">+ 새 메모 추가</button>
+      <div class="card form-card" id="memoForm">
+        <input type="text" id="memoTitle" placeholder="제목">
+        <textarea id="memoBody" placeholder="내용을 적어보세요"></textarea>
+        <button type="button" class="btn" id="memoSave">저장하기</button>
+      </div>
+      <div class="card" id="memoList"></div>
+    </div>
+
+    <!-- 캘린더 -->
+    <div class="screen" id="screen-calendar">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin:18px 0 8px;">
+        <button type="button" class="icon-btn" id="calPrevBtn" title="이전 달">‹</button>
+        <div class="section-label" id="calMonthLabel" style="margin:0;">일정</div>
+        <button type="button" class="icon-btn" id="calNextBtn" title="다음 달">›</button>
+      </div>
+      <div class="card">
+        <div class="cal-grid" id="calGrid"></div>
+      </div>
+      <div class="section-label" id="calDayLabel">선택한 날짜 일정</div>
+      <button type="button" class="add-toggle" data-toggle="calForm" id="calToggleBtn">+ 이 날짜에 일정 추가</button>
+      <div class="card form-card" id="calForm">
+        <input type="text" id="calTitle" placeholder="일정 제목">
+        <input type="time" id="calTime">
+        <select id="calRepeat">
+          <option value="none">반복 안함</option>
+          <option value="daily">매일 (30일)</option>
+          <option value="weekly">매주 (12주)</option>
+          <option value="monthly">매월 (6개월)</option>
+        </select>
+        <label style="font-size:12.5px;color:var(--ink-soft);display:flex;align-items:center;gap:6px;margin-bottom:10px;">
+          <input type="checkbox" id="calNotify" style="width:auto;margin:0;">그 시간에 알림 받기
+        </label>
+        <button type="button" class="btn" id="calSave">저장하기</button>
+      </div>
+      <div class="card" id="calList"></div>
+    </div>
+
+    <!-- 가계부 -->
+    <div class="screen" id="screen-budget">
+      <div class="section-label">이번 달 가계부</div>
+      <div class="stat-row">
+        <div class="stat"><div class="lbl">수입</div><div class="val" id="statIn">0원</div></div>
+        <div class="stat"><div class="lbl">지출</div><div class="val" id="statOut">0원</div></div>
+      </div>
+      <div class="card" id="budgetCard">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <div class="section-label" style="margin:0;">이번 달 예산</div>
+          <button type="button" class="icon-x" id="budgetEditBtn">설정</button>
+        </div>
+        <div id="budgetSetForm" style="display:none;">
+          <div class="row2">
+            <input type="number" id="budgetInput" placeholder="이번 달 예산 (원)">
+            <button type="button" class="btn" id="budgetSaveBtn" style="width:auto;padding:0 16px;">저장</button>
+          </div>
+        </div>
+        <div id="budgetDisplay"></div>
+      </div>
+      <button type="button" class="add-toggle" data-toggle="txForm" id="txToggleBtn">+ 내역 추가</button>
+      <div class="card form-card" id="txForm">
+        <div class="row2">
+          <select id="txType"><option value="expense">지출</option><option value="income">수입</option></select>
+          <input type="number" id="txAmount" placeholder="금액">
+        </div>
+        <div class="row2">
+          <select id="txCategory"></select>
+          <input type="text" id="txMemo" placeholder="메모(선택)">
+        </div>
+        <button type="button" class="btn" id="txSave">저장하기</button>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div class="section-label">카테고리별 지출</div>
+        <button type="button" class="icon-x" id="catEditBtn">카테고리 편집</button>
+      </div>
+      <div class="card form-card" id="catEditForm">
+        <div id="catEditList" style="margin-bottom:10px;"></div>
+        <div class="row2">
+          <input type="text" id="catNewInput" placeholder="새 카테고리 이름">
+          <button type="button" class="btn" id="catAddBtn" style="width:auto;padding:0 16px;">추가</button>
+        </div>
+      </div>
+      <div class="card" id="catBars"></div>
+      <div class="section-label">전체 내역</div>
+      <div class="card" id="txList"></div>
+    </div>
+
+    <!-- 하단 탭바 -->
+    <div class="tabbar">
+      <div class="tab active" data-tab="home"><div class="ic">🏠</div>홈</div>
+      <div class="tab" data-tab="memo"><div class="ic">📝</div>메모</div>
+      <div class="tab-add" id="tabAddBtn" aria-label="빠르게 추가">+</div>
+      <div class="tab" data-tab="calendar"><div class="ic">📅</div>캘린더</div>
+      <div class="tab" data-tab="budget"><div class="ic">💰</div>가계부</div>
+    </div>
+
+    <!-- 토스트 (실행취소 포함) -->
+    <div class="toast" id="toast"></div>
   </div>
 
   <script src="js/app.js"></script>
