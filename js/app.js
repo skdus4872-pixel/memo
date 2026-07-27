@@ -55,6 +55,7 @@ const closeModalBtn = document.getElementById('closeModalBtn');
 const cancelBtn = document.getElementById('cancelBtn');
 const searchInput = document.getElementById('searchInput');
 const sortSelect = document.getElementById('sortSelect');
+const memoCountEl = document.getElementById('memoCount');
 
 let memos = loadMemos();
 let editingId = null; // null이면 새 메모 작성, 값이 있으면 해당 id 메모 수정
@@ -101,24 +102,41 @@ function filterMemos(list) {
   );
 }
 
-// 정렬 기준에 따라 메모 정렬 (즐겨찾기가 항상 먼저 오고, 그 안에서 정렬 기준 적용)
+// 정렬 기준에 따라 메모 정렬 (고정 > 즐겨찾기 > 정렬 기준 순으로 우선순위 적용)
 function sortMemos(list) {
   const sorted = [...list];
   sorted.sort((a, b) => {
-    if (a.isFavorite !== b.isFavorite) return a.isFavorite ? -1 : 1;
+    const pinnedA = Boolean(a.isPinned);
+    const pinnedB = Boolean(b.isPinned);
+    if (pinnedA !== pinnedB) return pinnedA ? -1 : 1;
+
+    const favoriteA = Boolean(a.isFavorite);
+    const favoriteB = Boolean(b.isFavorite);
+    if (favoriteA !== favoriteB) return favoriteA ? -1 : 1;
+
     return sortOrder === 'newest' ? b.id - a.id : a.id - b.id;
   });
   return sorted;
+}
+
+// 메모 개수 표시 갱신
+function updateMemoCount(visibleCount) {
+  const total = memos.length;
+  memoCountEl.textContent = searchQuery.trim()
+    ? `검색 결과 ${visibleCount}개 / 전체 ${total}개`
+    : `전체 ${total}개`;
 }
 
 // 메모 목록 화면에 그리기
 function renderMemos() {
   if (memos.length === 0) {
     memoListEl.innerHTML = '<p class="empty-state" id="emptyState">아직 메모가 없어요. 오른쪽 아래 버튼을 눌러 첫 메모를 남겨보세요.</p>';
+    updateMemoCount(0);
     return;
   }
 
   const visible = sortMemos(filterMemos(memos));
+  updateMemoCount(visible.length);
 
   if (visible.length === 0) {
     memoListEl.innerHTML = '<p class="empty-state">검색 결과가 없어요.</p>';
@@ -129,6 +147,7 @@ function renderMemos() {
     .map((memo) => `
       <article class="memo-card" data-id="${memo.id}">
         <div class="memo-card-header">
+          <button type="button" class="icon-btn pin-btn" aria-label="${memo.isPinned ? '고정 해제' : '고정하기'}">${memo.isPinned ? '📌' : '📍'}</button>
           <button type="button" class="icon-btn favorite-btn" aria-label="${memo.isFavorite ? '즐겨찾기 해제' : '즐겨찾기 추가'}">${memo.isFavorite ? '★' : '☆'}</button>
           <h2 class="memo-card-title">${escapeHtml(memo.title)}</h2>
           <div class="memo-card-actions">
@@ -198,6 +217,7 @@ function handleFormSubmit(event) {
       date: getTodayString(),
       tags,
       isFavorite: false,
+      isPinned: false,
     });
   } else {
     const target = memos.find((memo) => memo.id === editingId);
@@ -219,6 +239,15 @@ function handleToggleFavorite(id) {
   const target = memos.find((memo) => memo.id === id);
   if (!target) return;
   target.isFavorite = !target.isFavorite;
+  saveMemos();
+  renderMemos();
+}
+
+// 고정 on/off 토글 (즐겨찾기보다 우선순위 높게 맨 위 고정)
+function handleTogglePin(id) {
+  const target = memos.find((memo) => memo.id === id);
+  if (!target) return;
+  target.isPinned = !target.isPinned;
   saveMemos();
   renderMemos();
 }
@@ -299,7 +328,9 @@ function handleMemoListClick(event) {
     return;
   }
 
-  if (event.target.closest('.favorite-btn')) {
+  if (event.target.closest('.pin-btn')) {
+    handleTogglePin(id);
+  } else if (event.target.closest('.favorite-btn')) {
     handleToggleFavorite(id);
   } else if (event.target.closest('.copy-btn')) {
     handleCopy(id, event.target.closest('.copy-btn'));

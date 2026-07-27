@@ -105,6 +105,17 @@ body {
 }
 
 /* ============================================
+   메모 개수
+   ============================================ */
+.memo-count {
+  padding: 8px 16px 0;
+  max-width: 640px;
+  margin: 0 auto;
+  font-size: 0.8rem;
+  opacity: 0.6;
+}
+
+/* ============================================
    메모 목록
    ============================================ */
 .memo-list {
@@ -165,6 +176,11 @@ body {
 .favorite-btn {
   font-size: 1.1rem;
   color: #E8A33D;
+  flex-shrink: 0;
+}
+
+.pin-btn {
+  font-size: 1rem;
   flex-shrink: 0;
 }
 
