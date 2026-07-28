@@ -370,6 +370,11 @@ textarea {
   cursor: pointer;
 }
 
+#memoToggleBtn {
+  background: var(--mint-bg);
+  color: var(--mint-ink);
+}
+
 .add-toggle {
   width: 100%;
   border: none;
