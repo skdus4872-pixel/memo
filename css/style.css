@@ -64,7 +64,7 @@ body {
    ============================================ */
 .frame {
   width: 402px;
-  min-height: 874px;
+  height: 874px;
   background: var(--bg);
   color: var(--ink);
   border-radius: 44px;
@@ -82,7 +82,8 @@ body {
   }
   .frame {
     width: 100%;
-    min-height: 100vh;
+    height: 100vh;
+    height: 100dvh; /* 모바일 브라우저 주소창 크기 변화에도 안정적인 실제 뷰포트 높이 */
     border-radius: 0;
     box-shadow: none;
   }
