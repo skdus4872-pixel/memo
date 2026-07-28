@@ -7,7 +7,7 @@ window.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => {
     splash.classList.add('hide');
     setTimeout(() => splash.remove(), 400);
-  }, 3000);
+  }, 2000);
 });
 
 // ============================================
