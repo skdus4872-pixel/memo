@@ -384,6 +384,11 @@ textarea {
   color: var(--mint-ink);
 }
 
+#calToggleBtn {
+  background: var(--lav-bg);
+  color: var(--lav-ink);
+}
+
 .add-toggle {
   width: 100%;
   border: none;

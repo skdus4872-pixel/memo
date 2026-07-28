@@ -479,7 +479,7 @@ function resetCalForm() {
   document.getElementById('calRepeat').value = 'none';
   document.getElementById('calRepeat').disabled = false;
   document.getElementById('calSave').textContent = '저장하기';
-  document.getElementById('calToggleBtn').textContent = '+ 이 날짜에 일정 추가';
+  document.getElementById('calToggleBtn').textContent = '+ 일정 추가';
 }
 
 // 날짜 문자열(YYYY-MM-DD) 연산 (반복 일정 생성용)
