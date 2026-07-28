@@ -125,15 +125,10 @@ body {
   justify-content: space-between;
 }
 
-.brand {
-  font-family: 'Elms Sans', 'Nanum Gothic', sans-serif;
-  font-weight: 600;
-  font-size: 21px;
-  letter-spacing: -0.3px;
-}
-
-.brand span {
-  color: var(--peri);
+.brand-logo {
+  display: block;
+  height: 22px;
+  width: auto;
 }
 
 .topbar .date {

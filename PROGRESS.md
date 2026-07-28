@@ -602,3 +602,22 @@
 
 ### 다음 작업 제안
 - 없음
+
+## 2026-07-28 — 상단바 로고를 이미지로 교체
+
+### 배경
+- 사용자가 `C:\Users\Admin\Downloads\이름.png`(235×48, "MEMO LIFE" 손글씨 스타일, 검정+보라) 제공하며 상단바 왼쪽 텍스트 로고("메모라이프")를 이 이미지로 교체 요청
+
+### 완료한 작업
+- 이미지를 `icons/brand-logo.png`로 복사
+- `index.html`: `<div class="brand">메모<span>라이프</span></div>` → `<img class="brand-logo" src="icons/brand-logo.png" alt="메모라이프">`
+- `css/style.css`: 더 이상 쓰이지 않는 `.brand`/`.brand span` 텍스트 스타일 제거, `.brand-logo`(height 22px, width auto로 기존 텍스트 로고와 비슷한 높이 유지, 비율 그대로 확대/축소) 추가
+- `service-worker.js` 캐시 목록에 `./icons/brand-logo.png` 추가, 캐시 버전 v11 → v12
+
+### 검증 상태
+- 1차(Claude 자동 확인): `.brand` 클래스가 프로젝트 내 다른 곳에서 쓰이지 않는지 grep으로 확인 후 안전하게 제거, 이미지 육안 확인 완료
+- 2차(사용자 실기기 확인): **아직 미완료**
+
+### 다음 작업 제안
+1. 로컬 또는 배포 사이트에서 상단바 왼쪽 로고가 이미지로 잘 보이는지, 날짜 텍스트와의 정렬/간격이 어색하지 않은지 확인
+2. 확인되면 커밋+push 진행
