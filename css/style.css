@@ -309,6 +309,15 @@ body {
   opacity: 0.75;
 }
 
+/* "전체 내역" 카드: 옅은 핑크 배경, 지출 항목은 카드와 겹치지 않도록 흰색으로 반전 */
+#txList {
+  background: var(--pink-bg);
+}
+
+#txList .list-item.c-expense {
+  background: var(--card);
+}
+
 .amount {
   font-family: 'Bitcount Grid Double', 'Oswald', monospace;
   font-weight: 500;
