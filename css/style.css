@@ -504,7 +504,8 @@ textarea {
 }
 
 .tab.active { color: var(--ink); font-weight: 500; }
-.tab .ic { font-size: 17px; }
+.tab .ic { display: flex; align-items: center; justify-content: center; }
+.tab .ic svg { width: 19px; height: 19px; }
 
 /* ============================================
    토스트 (실행취소 포함)
