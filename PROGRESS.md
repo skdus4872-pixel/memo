@@ -562,3 +562,25 @@
 - 배포 URL: https://memo-jade-mu.vercel.app
 - GitHub: https://github.com/skdus4872-pixel/memo
 - 화면: 홈(대시보드) / 메모 / 캘린더 / 가계부 / 통합검색, 다크모드, PWA(오프라인+설치), 데이터 백업까지 전부 구현 및 실기기 검증 완료
+
+## 2026-07-28 — 13단계: 시작화면(스플래시)
+
+### 배경
+- 사용자 요청: 앱 실행 전에 `C:\Users\Admin\Downloads\시작화면.png`(분홍 그라데이션 + 토끼 캐릭터 + "MEMO LIFE" 로고 이미지)를 1.5초간 먼저 보여줄 것
+
+### 완료한 작업
+- 이미지를 `icons/splash.png`로 복사
+- `index.html`: `#frame` 최상단(상단바보다 앞)에 `#splashScreen` 오버레이 추가 (이미지 전체 표시)
+- `css/style.css`: `.splash-screen`을 `.frame` 기준 `position:absolute; inset:0; z-index:9999`로 배치해 폰 프레임 영역 전체를 덮도록 하고, `object-fit:cover`로 이미지 표시. `.hide` 클래스로 0.4초 페이드아웃 트랜지션 처리
+- `js/app.js`: `DOMContentLoaded` 시 1.5초 뒤 `.hide` 클래스 추가 → 0.4초 후 DOM에서 완전히 제거 (이후 사용자 요청으로 3초로 변경, `setTimeout` 값 1500 → 3000)
+- `service-worker.js` 캐시 목록(`CORE_ASSETS`)에 `./icons/splash.png` 추가, 캐시 버전 v9 → v10 (오프라인에서도 스플래시 이미지가 보이도록)
+- `CLAUDE.md`에 "13단계. 시작화면(스플래시)" 섹션 신설 및 체크 완료 처리
+
+### 검증 상태
+- 1차(Claude 자동 확인): 로컬에 Python/Node 등 서버 실행 환경이 없고 브라우저 자동화 도구도 연결되지 않아, 실제 렌더링 대신 코드 정적 검토로 대체함 — `index.html`의 `#splashScreen` id와 `js/app.js`의 `getElementById('splashScreen')` 참조 일치, `icons/splash.png` 파일 실제 생성 확인(248KB), CSS `.splash-screen`/`.hide` 셀렉터 및 `.frame`과의 `position:relative`+`overflow:hidden` 관계로 프레임 영역 안에 정확히 덮이는지 검토 완료.
+- 2차(사용자 실기기 확인): **아직 미완료**
+
+### 다음 작업 제안
+1. 사용자가 로컬(Live Server 등) 또는 배포 사이트에서 새로고침 시 시작화면이 1.5초간 뜨고 자연스럽게 사라지는지 확인
+   - 이미지 비율이 실제 폰 화면(또는 프레임)에서 잘리거나 늘어나 보이지 않는지도 함께 확인
+2. 확인되면 커밋 + push (배포 규칙에 따라 기능 단계 완료 시 항상 함께 진행)

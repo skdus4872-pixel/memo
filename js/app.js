@@ -1,4 +1,16 @@
 // ============================================
+// 시작화면(스플래시) - 1.5초 후 자동으로 사라짐
+// ============================================
+window.addEventListener('DOMContentLoaded', () => {
+  const splash = document.getElementById('splashScreen');
+  if (!splash) return;
+  setTimeout(() => {
+    splash.classList.add('hide');
+    setTimeout(() => splash.remove(), 400);
+  }, 3000);
+});
+
+// ============================================
 // 서비스 워커 등록 (오프라인 지원)
 // ============================================
 if ('serviceWorker' in navigator) {
