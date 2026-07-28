@@ -32,8 +32,6 @@ const K = {
   pinOrder: 'memolife_pin_order',
   schedPinOrder: 'memolife_sched_pin_order',
   txPinOrder: 'memolife_tx_pin_order',
-  budget: 'memolife_budget',
-  categories: 'memolife_categories',
 };
 
 function load(key, fallback) {
@@ -572,85 +570,38 @@ checkScheduleAlerts();
 // ============================================
 // 가계부 탭
 // ============================================
-const DEFAULT_CATS = ['식비', '교통', '쇼핑', '생활', '취미', '기타'];
+const EXPENSE_CATS = ['식비', '교통', '여가', '생활용품', '쇼핑', '의료', '교육', '통신비', '주거/공과금', '저축', '카드대금', '보험', '세금', '기타'];
+const INCOME_CATS = ['급여', '용돈', '부수입', '기타'];
 let editingTxId = null;
 
-function loadCategories() {
-  return load(K.categories, DEFAULT_CATS);
-}
-
 function renderCategorySelect() {
+  const type = document.getElementById('txType').value;
+  const cats = type === 'income' ? INCOME_CATS : EXPENSE_CATS;
   const sel = document.getElementById('txCategory');
   const cur = sel.value;
-  sel.innerHTML = loadCategories().map((c) => `<option>${escapeHtml(c)}</option>`).join('');
-  if (loadCategories().includes(cur)) sel.value = cur;
+  sel.innerHTML = cats.map((c) => `<option>${escapeHtml(c)}</option>`).join('');
+  if (cats.includes(cur)) sel.value = cur;
 }
 
-document.getElementById('catEditBtn').addEventListener('click', () => {
-  document.getElementById('catEditForm').classList.toggle('open');
-  renderCategoryEditList();
-});
+document.getElementById('txType').addEventListener('change', renderCategorySelect);
 
-function renderCategoryEditList() {
-  const cats = loadCategories();
-  const box = document.getElementById('catEditList');
-  const usedCats = new Set(load(K.tx, []).map((t) => t.category));
-  box.innerHTML = '';
-  cats.forEach((c) => {
-    const row = document.createElement('div');
-    row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);';
-    row.innerHTML = `<span style="font-size:13px;">${escapeHtml(c)}</span>
-      <button type="button" class="icon-x">삭제</button>`;
-    row.querySelector('button').addEventListener('click', () => {
-      if (usedCats.has(c)) {
-        toast('이미 사용 중인 카테고리는 삭제할 수 없어요');
-        return;
-      }
-      if (cats.length <= 1) {
-        toast('카테고리가 최소 1개는 있어야 해요');
-        return;
-      }
-      save(K.categories, cats.filter((x) => x !== c));
-      renderCategoryEditList();
-      renderCategorySelect();
-    });
-    box.append(row);
-  });
-}
-
-document.getElementById('catAddBtn').addEventListener('click', () => {
-  const input = document.getElementById('catNewInput');
-  const name = input.value.trim();
-  if (!name) return;
-  const cats = loadCategories();
-  if (cats.includes(name)) {
-    toast('이미 있는 카테고리예요');
-    return;
-  }
-  save(K.categories, [...cats, name]);
-  input.value = '';
-  renderCategoryEditList();
+function openTxForm(type) {
+  editingTxId = null;
+  document.getElementById('txAmount').value = '';
+  document.getElementById('txMemo').value = '';
+  document.getElementById('txSave').textContent = '저장하기';
+  document.getElementById('txType').value = type;
   renderCategorySelect();
-  toast('카테고리를 추가했어요');
+  document.getElementById('txForm').classList.add('open');
+}
+
+document.querySelectorAll('[data-open-type]').forEach((el) => {
+  el.addEventListener('click', () => openTxForm(el.dataset.openType));
 });
 
-document.getElementById('budgetEditBtn').addEventListener('click', () => {
-  const form = document.getElementById('budgetSetForm');
-  const isOpen = form.style.display === 'block';
-  form.style.display = isOpen ? 'none' : 'block';
-  if (!isOpen) document.getElementById('budgetInput').value = load(K.budget, 0) || '';
-});
-
-document.getElementById('budgetSaveBtn').addEventListener('click', () => {
-  const v = Number(document.getElementById('budgetInput').value);
-  if (!v || v <= 0) {
-    toast('예산 금액을 입력해주세요');
-    return;
-  }
-  save(K.budget, v);
-  document.getElementById('budgetSetForm').style.display = 'none';
-  renderAll();
-  toast('예산을 저장했어요');
+document.getElementById('txCloseBtn').addEventListener('click', () => {
+  document.getElementById('txForm').classList.remove('open');
+  editingTxId = null;
 });
 
 function txPinOrder() {
@@ -672,23 +623,6 @@ function renderBudget() {
   const expense = thisMonth.filter((t) => t.type === 'expense').reduce((a, b) => a + Number(b.amount), 0);
   document.getElementById('statIn').textContent = `${income.toLocaleString()}원`;
   document.getElementById('statOut').textContent = `${expense.toLocaleString()}원`;
-
-  const budget = load(K.budget, 0);
-  const budgetDisplay = document.getElementById('budgetDisplay');
-  if (!budget) {
-    budgetDisplay.innerHTML = '<div class="empty" style="padding:10px 0;">아직 예산을 설정하지 않았어요.</div>';
-  } else {
-    const pct = Math.min(100, Math.round((expense / budget) * 100));
-    const over = expense > budget;
-    budgetDisplay.innerHTML = `
-      <div class="bar-row" style="margin-bottom:6px;">
-        <div class="top"><span>${expense.toLocaleString()}원 사용</span><span>예산 ${budget.toLocaleString()}원</span></div>
-        <div class="bar-track"><div class="bar-fill" style="width:${pct}%;${over ? 'background:var(--red);' : ''}"></div></div>
-      </div>
-      <div style="font-size:11.5px;color:${over ? 'var(--red)' : 'var(--ink-soft)'};">
-        ${over ? `예산을 ${(expense - budget).toLocaleString()}원 초과했어요` : `${(budget - expense).toLocaleString()}원 남았어요`}
-      </div>`;
-  }
 
   const cats = {};
   thisMonth.filter((t) => t.type === 'expense').forEach((t) => {
@@ -746,7 +680,6 @@ function renderBudget() {
       document.getElementById('txMemo').value = t.memo || '';
       document.getElementById('txForm').classList.add('open');
       document.getElementById('txSave').textContent = '수정 완료';
-      document.getElementById('txToggleBtn').textContent = '내역 수정 중 (취소하려면 다시 탭)';
     });
 
     if (t.pinned) {
@@ -773,16 +706,6 @@ function renderBudget() {
   });
 }
 
-document.getElementById('txToggleBtn').addEventListener('click', () => {
-  if (!document.getElementById('txForm').classList.contains('open')) {
-    editingTxId = null;
-    document.getElementById('txAmount').value = '';
-    document.getElementById('txMemo').value = '';
-    document.getElementById('txSave').textContent = '저장하기';
-    document.getElementById('txToggleBtn').textContent = '+ 내역 추가';
-  }
-});
-
 document.getElementById('txSave').addEventListener('click', () => {
   const amount = document.getElementById('txAmount').value;
   if (!amount) return;
@@ -800,7 +723,6 @@ document.getElementById('txSave').addEventListener('click', () => {
     document.getElementById('txMemo').value = '';
     document.getElementById('txForm').classList.remove('open');
     document.getElementById('txSave').textContent = '저장하기';
-    document.getElementById('txToggleBtn').textContent = '+ 내역 추가';
     renderAll();
     toast('내역을 수정했어요');
     return;
@@ -812,17 +734,7 @@ document.getElementById('txSave').addEventListener('click', () => {
   document.getElementById('txMemo').value = '';
   document.getElementById('txForm').classList.remove('open');
   renderAll();
-
-  const budget = load(K.budget, 0);
-  const monthKey = todayStr().slice(0, 7);
-  const monthExpense = tx
-    .filter((t) => t.date.slice(0, 7) === monthKey && t.type === 'expense')
-    .reduce((a, b) => a + Number(b.amount), 0);
-  if (type === 'expense' && budget && monthExpense > budget) {
-    toast('⚠ 이번 달 예산을 초과했어요');
-  } else {
-    toast('가계부에 기록했어요');
-  }
+  toast('가계부에 기록했어요');
 });
 
 // ============================================
