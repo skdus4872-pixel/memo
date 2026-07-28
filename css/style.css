@@ -99,15 +99,17 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #FAFAF9;
+  background:
+    radial-gradient(circle at 12% 8%, #fff2ef 0%, transparent 45%),
+    radial-gradient(circle at 88% 92%, #fff2ef 0%, transparent 45%),
+    linear-gradient(160deg, #ff96a8, #f2637f 55%, #ff9fb0);
   opacity: 1;
   transition: opacity 0.4s ease;
 }
 
-.splash-screen img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.splash-icon {
+  width: 150px;
+  height: 150px;
 }
 
 .splash-screen.hide {
