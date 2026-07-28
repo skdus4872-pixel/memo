@@ -386,6 +386,10 @@ textarea {
 /* ============================================
    캘린더
    ============================================ */
+.cal-card {
+  background: var(--lav-bg);
+}
+
 .cal-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -410,10 +414,10 @@ textarea {
   cursor: pointer;
   position: relative;
   color: var(--ink);
-  background: var(--bg);
+  background: var(--card);
 }
 
-.cal-day.has-item { background: var(--lav-bg); color: var(--lav-ink); font-weight: 500; }
+.cal-day.has-item { background: var(--lav-ink); color: var(--accent-ink); font-weight: 500; }
 .cal-day.today { background: var(--accent-bg); color: var(--accent-ink); font-weight: 600; }
 .cal-day.picked:not(.today) { box-shadow: 0 0 0 2px var(--peri) inset; }
 
